@@ -45,10 +45,13 @@ YELLOW_SPACESHIP_IMAGE = pygame.image.load(
 YELLOW_SPACESHIP = pygame.transform.rotate(pygame.transform.scale(
     YELLOW_SPACESHIP_IMAGE, (SPACESHIP_WIDTH, SPACESHIP_HEIGHT)), 90)
 
-RED_SPACESHIP_IMAGE = pygame.image.load(
-    os.path.join('Assets', 'spaceship_red.png'))
-RED_SPACESHIP = pygame.transform.rotate(pygame.transform.scale(
-    RED_SPACESHIP_IMAGE, (SPACESHIP_WIDTH, SPACESHIP_HEIGHT)), 270)
+
+czerowne_efekty = [
+    pygame.transform.rotate(pygame.transform.scale(
+            pygame.image.load(os.path.join('Assets', 'spaceship_red.png')), (SPACESHIP_WIDTH, SPACESHIP_HEIGHT)), 270),
+    pygame.transform.rotate(pygame.transform.scale(
+        pygame.image.load(os.path.join('Assets', 'wybuch.jpg')), (SPACESHIP_WIDTH, SPACESHIP_HEIGHT)), 270)
+]
 
 SPACE = pygame.transform.scale(pygame.image.load(
     os.path.join('Assets', 'space.png')), (WIDTH, HEIGHT))
@@ -79,9 +82,10 @@ def draw_window(red_ships_fleat ,yellow, red_bullets, yellow_bullets, yellow_hea
 
     WIN.blit(YELLOW_SPACESHIP, (yellow.x, yellow.y))
     for red in red_ships_fleat:
-        WIN.blit(RED_SPACESHIP, (red.rect.x, red.rect.y))
-
-
+        if(red.explosion ==0):
+            WIN.blit(czerowne_efekty[0], (red.rect.x, red.rect.y))
+        if(red.explosion == 1):
+            WIN.blit(czerowne_efekty[1], (red.rect.x, red.rect.y))
     for bullet in red_bullets:
         pygame.draw.rect(WIN, RED, bullet)
 
@@ -168,8 +172,8 @@ def if_game_quit(event, run):
         run = False
     return run
 
-def shoot_bullet(ship, bullets, max_bullets, bullet_sound):
-    if len(bullets) < max_bullets:
+def shoot_bullet(ship, bullets, max_bullets, bullet_sound,yellow_bullets):
+    if len(yellow_bullets) < max_bullets:
         bullet = pygame.Rect(
             ship.x + ship.width, ship.y + ship.height//2 - 2, 10, 5)
         bullets.append(bullet)
@@ -178,7 +182,7 @@ def shoot_bullet(ship, bullets, max_bullets, bullet_sound):
 def shot_red_bullet(red_ship_fleet, red_bullets, MAX_BULLETS, BULLET_FIRE_SOUND):
     for Red in red_ship_fleet:
         losowa_kula = randint(Red.red_speed_shoot, 18)
-        if losowa_kula == 18 or losowa_kula == 17:
+        if (losowa_kula == 18 or losowa_kula == 17) and Red.explosion==0:
             bullet = pygame.Rect(
                 Red.rect.x, Red.rect.y + Red.rect.height // 2 - 2, 10, 5)
             red_bullets.append(bullet)
@@ -242,25 +246,31 @@ def handel_death_red(red_ships_fleat,POINTS):
     for red in red_ships_fleat:
         if red.health <= 0:
             POINTS += 1
-            move_red(red)
             red.health = 10
             return 1
     return 0
+def handel_explosions(red_ships_fleat,elapsed_time,explosion_start_time):
+    for red in red_ships_fleat:
+        if elapsed_time > explosion_start_time + 1 and red.explosion==1:
+            red.explosion = 0
+            move_red(red)
+
 
 
 
 
 def make_more_enemies(elapsed_time,red_ships_fleet,unused_ships):
     for i in range(1,5):
-        if (elapsed_time > i * 20) and (len(red_ships_fleet) == 2+i):  # po 20 sekundach pojawia sie nowy statek
+        if (elapsed_time > i * 10) and (len(red_ships_fleet) == 2+i):  # po 20 sekundach pojawia sie nowy statek
             red_ships_fleet.append(unused_ships[i-1])
 
 
 
 
 class Red:
-    def __init__(self,speed,red_speed_shoot, health=10 , x=700, y=300, width=SPACESHIP_WIDTH, height=SPACESHIP_HEIGHT):
+    def __init__(self,speed,red_speed_shoot, health=10 , x=700, y=300, width=SPACESHIP_WIDTH, height=SPACESHIP_HEIGHT,explosion  = 0):
         self.rect = pygame.Rect(x, y, width, height)
         self.health = health
         self.speed = speed
         self.red_speed_shoot = red_speed_shoot
+        self.explosion = explosion

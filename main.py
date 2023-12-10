@@ -8,6 +8,7 @@ pygame.font.init()
 pygame.mixer.init()
 
 def main():
+    explosion_start_time = 0
     RED_HIT_1 = pygame.USEREVENT + 2
     RED_HIT_2 = pygame.USEREVENT + 3
     RED_HIT_3 = pygame.USEREVENT + 4
@@ -38,7 +39,7 @@ def main():
     red10 = Red(red_speed,red_speed_shoot)
     red11 = Red(red_speed,red_speed_shoot)
     red12 = Red(red_speed,red_speed_shoot)
-    unused_ships = [red4,red5,red6,red7]
+    unused_ships = [red4,red5,red6,red7,red8,red9,red10,red11,red12]
     red_ships_fleet = [red,red2,red3]
 
 
@@ -72,22 +73,33 @@ def main():
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LCTRL and len(yellow_bullets) < MAX_BULLETS:
-                    shoot_bullet(yellow, yellow_bullets, MAX_BULLETS, BULLET_FIRE_SOUND)
+                    shoot_bullet(yellow, yellow_bullets, MAX_BULLETS, BULLET_FIRE_SOUND,yellow_bullets)
 
             shot_red_bullet(red_ships_fleet, red_bullets, MAX_BULLETS, BULLET_FIRE_SOUND)
 
+
             i=0
             for red in red_ships_fleet:
-                if event.type == RED_HITS[i]:
+                if event.type == RED_HITS[i] and red.explosion==0:
                     red.health -= 1
                     BULLET_HIT_SOUND.play()
                 i+=1
+                if red.health <= 0:
+                    red.explosion = 1
+                    explosion_start_time = elapsed_time
+
+
 
             if event.type == YELLOW_HIT:
                 yellow_health -= 1
                 BULLET_HIT_SOUND.play()
 
+
         POINTS += handel_death_red(red_ships_fleet,POINTS)
+
+        handel_explosions(red_ships_fleet,elapsed_time,explosion_start_time)
+
+
 
 
 
